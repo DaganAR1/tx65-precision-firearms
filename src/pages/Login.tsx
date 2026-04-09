@@ -11,6 +11,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -32,6 +33,25 @@ export default function Login() {
       toast.error(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error('Please enter your email address first.');
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success('Password reset link sent! Check your email.');
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -73,7 +93,19 @@ export default function Login() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400">Password</label>
+            <div className="flex justify-between items-center">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400">Password</label>
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={resetLoading}
+                  className="text-[10px] font-black uppercase tracking-widest text-brand-accent hover:underline disabled:opacity-50"
+                >
+                  {resetLoading ? 'Sending...' : 'Forgot Password?'}
+                </button>
+              )}
+            </div>
             <div className="relative">
               <input
                 type="password"

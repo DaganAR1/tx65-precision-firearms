@@ -35,6 +35,7 @@ export default function AdminDashboard() {
   ]);
   const [loading, setLoading] = useState(true);
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -63,11 +64,13 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     setLoading(true);
+    setConnectionError(null);
     try {
       // Test connection first
       const { error: connError } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
       if (connError) {
         setDbConnected(false);
+        setConnectionError(connError.message);
         throw connError;
       }
       setDbConnected(true);
@@ -167,16 +170,50 @@ export default function AdminDashboard() {
 
         {/* Stats Grid */}
         {dbConnected === false && (
-          <div className="mb-12 bg-red-50 border border-red-100 p-6 flex items-start space-x-4">
-            <div className="p-2 bg-red-100 text-red-600 rounded-full">
-              <AlertTriangle size={20} />
+          <div className="mb-12 bg-red-50 border border-red-100 p-8 flex flex-col space-y-6">
+            <div className="flex items-start space-x-4">
+              <div className="p-2 bg-red-100 text-red-600 rounded-full">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-tight text-red-900">Database Connection Failed</h3>
+                <p className="text-xs text-red-700 mt-1 leading-relaxed">
+                  The website is unable to reach your Supabase database. This is usually caused by missing or incorrect environment variables.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-black uppercase tracking-tight text-red-900">Database Connection Failed</h3>
-              <p className="text-xs text-red-700 mt-1 leading-relaxed">
-                The website is unable to reach your Supabase database. This is usually caused by missing or incorrect environment variables.
-                Please ensure <span className="font-mono font-bold">VITE_SUPABASE_URL</span> and <span className="font-mono font-bold">VITE_SUPABASE_ANON_KEY</span> are correctly set in your project secrets.
-              </p>
+
+            <div className="bg-white p-6 border border-red-100 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Debug Information</h4>
+                <button 
+                  onClick={() => fetchData()}
+                  className="text-[10px] font-black uppercase tracking-widest text-brand-accent hover:underline"
+                >
+                  Retry Connection
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between text-[10px] font-mono">
+                  <span className="text-gray-400">Error Message:</span>
+                  <span className="text-red-600 font-bold">{connectionError || 'Failed to fetch (Network Error)'}</span>
+                </div>
+                <div className="flex justify-between text-[10px] font-mono">
+                  <span className="text-gray-400">Supabase URL:</span>
+                  <span className="text-gray-900">{import.meta.env.VITE_SUPABASE_URL ? `${import.meta.env.VITE_SUPABASE_URL.substring(0, 15)}...` : 'MISSING'}</span>
+                </div>
+                <div className="flex justify-between text-[10px] font-mono">
+                  <span className="text-gray-400">Anon Key:</span>
+                  <span className="text-gray-900">{import.meta.env.VITE_SUPABASE_ANON_KEY ? 'PRESENT (HIDDEN)' : 'MISSING'}</span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-50">
+                <p className="text-[9px] text-gray-400 uppercase tracking-widest leading-relaxed">
+                  <span className="font-bold text-gray-600">Action Required:</span> Go to your project settings, find the "Secrets" or "Environment Variables" panel, and ensure <span className="text-brand-primary">VITE_SUPABASE_URL</span> and <span className="text-brand-primary">VITE_SUPABASE_ANON_KEY</span> are set correctly.
+                </p>
+              </div>
             </div>
           </div>
         )}
