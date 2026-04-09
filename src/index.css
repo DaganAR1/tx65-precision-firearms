@@ -5,8 +5,8 @@
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   
   --color-brand-primary: #1a1a1a;
-  --color-brand-accent: #c5a059; /* Gold/Brass accent for high-end feel */
-  --color-brand-muted: #f5f5f5;
+  --color-brand-accent: #2563eb; /* Vibrant Blue accent */
+  --color-brand-muted: #f8fafc; /* Very light blue-gray */
 }
 
 @layer base {

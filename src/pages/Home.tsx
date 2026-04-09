@@ -20,17 +20,7 @@ export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [latestPosts, setLatestPosts] = useState<BlogPost[]>([]);
   const [activeView, setActiveView] = useState<'form' | 'map'>('form');
-  const [siteMedia, setSiteMedia] = useState<Record<string, string>>({
-    'home_hero_image': 'https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&q=80&w=1920',
-    'home_cat_rifles_image': 'https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&q=80&w=800',
-    'home_cat_pistols_image': 'https://images.unsplash.com/photo-1584285418504-0052ec244a7b?auto=format&fit=crop&q=80&w=800',
-    'home_cat_optics_image': 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&q=80&w=800',
-    'brand_logo_1': 'https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&q=80&w=400',
-    'brand_logo_2': 'https://images.unsplash.com/photo-1584285418504-0052ec244a7b?auto=format&fit=crop&q=80&w=400',
-    'brand_logo_3': 'https://images.unsplash.com/photo-1590496793907-428616238612?auto=format&fit=crop&q=80&w=400',
-    'brand_logo_4': 'https://images.unsplash.com/photo-1593115057323-2219899f2a8a?auto=format&fit=crop&q=80&w=400',
-    'brand_logo_5': 'https://images.unsplash.com/photo-1605142859862-978be7eba909?auto=format&fit=crop&q=80&w=400',
-  });
+  const [siteMedia, setSiteMedia] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -39,27 +29,20 @@ export default function Home() {
   }, []);
 
   const fetchSiteMedia = async () => {
-    const { data } = await supabase
-      .from('site_content')
-      .select('key, value')
-      .in('key', [
-        'home_hero_image', 
-        'home_cat_rifles_image', 
-        'home_cat_pistols_image', 
-        'home_cat_optics_image',
-        'brand_logo_1',
-        'brand_logo_2',
-        'brand_logo_3',
-        'brand_logo_4',
-        'brand_logo_5'
-      ]);
-    
-    if (data) {
-      const media = { ...siteMedia };
-      data.forEach(item => {
-        if (item.value) media[item.key] = item.value;
-      });
-      setSiteMedia(media);
+    try {
+      const { data } = await supabase
+        .from('site_content')
+        .select('key, value');
+      
+      if (data) {
+        const media: Record<string, string> = {};
+        data.forEach(item => {
+          media[item.key] = item.value || '';
+        });
+        setSiteMedia(media);
+      }
+    } catch (error) {
+      console.error('Error fetching site media:', error);
     }
   };
 
@@ -83,10 +66,42 @@ export default function Home() {
   };
 
   const categories = [
-    { name: 'Precision Rifles', image: siteMedia['home_cat_rifles_image'], href: '/shop?category=Rifles' },
-    { name: 'Tactical Pistols', image: siteMedia['home_cat_pistols_image'], href: '/shop?category=Pistols' },
-    { name: 'Premium Optics', image: siteMedia['home_cat_optics_image'], href: '/shop?category=Optics' },
+    { name: 'Precision Rifles', image: siteMedia['home_cat_rifles_image'] || 'https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&q=80&w=800', href: '/shop?category=Rifles' },
+    { name: 'Tactical Pistols', image: siteMedia['home_cat_pistols_image'] || 'https://images.unsplash.com/photo-1584285418504-0052ec244a7b?auto=format&fit=crop&q=80&w=800', href: '/shop?category=Pistols' },
+    { name: 'Premium Optics', image: siteMedia['home_cat_optics_image'] || 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&q=80&w=800', href: '/shop?category=Optics' },
   ];
+
+  const getBrands = () => {
+    const dynamicBrands = [];
+    for (let i = 1; i <= 8; i++) {
+      const name = siteMedia[`brand_name_${i}`];
+      const image = siteMedia[`brand_logo_${i}`];
+      
+      if (name && image && name.trim() !== '' && image.trim() !== '') {
+        dynamicBrands.push({ name: name.trim(), image: image.trim() });
+      }
+    }
+
+    if (dynamicBrands.length > 0) return dynamicBrands;
+
+    // Default brands if none are configured
+    return [
+      { name: 'GLOCK', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Glock_Logo.svg/1200px-Glock_Logo.svg.png' },
+      { name: 'HERITAGE', image: 'https://heritagemfg.com/wp-content/themes/heritage/assets/images/logo.png' },
+      { name: 'TAURUS', image: 'https://www.taurususa.com/assets/images/logo-taurus.png' },
+      { name: 'ROSSI', image: 'https://www.rossiusa.com/assets/images/logo-rossi.png' },
+      { name: 'RUGER', image: 'https://ruger.com/images/logos/ruger-logo-red.png' },
+      { name: 'WALTHER', image: 'https://waltherarms.com/wp-content/uploads/Walther-Logo-Black.png' },
+      { name: 'SIG SAUER', image: 'https://www.sigsauer.com/media/logo/default/sig-sauer-logo.png' },
+      { name: 'SMITH & WESSON', image: 'https://www.smith-wesson.com/sites/default/files/sw_logo_black.png' },
+      { name: 'BERETTA', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Beretta_logo.svg/1200px-Beretta_logo.svg.png' },
+      { name: 'COLT', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Colt_Logo.svg/1200px-Colt_Logo.svg.png' },
+    ];
+  };
+
+  const brands = getBrands();
+  // Triple the list to ensure it fills the screen and loops smoothly
+  const displayBrands = [...brands, ...brands, ...brands];
 
   return (
     <div className="flex flex-col">
@@ -135,18 +150,19 @@ export default function Home() {
       </section>
 
       {/* Features Bar */}
-      <section className="bg-brand-primary py-8 border-b border-white/10">
+      <section className="bg-brand-primary py-10 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-y-8 md:gap-x-16">
             {[
               { icon: Shield, text: 'Secure Checkout' },
               { icon: Truck, text: 'Fast Shipping' },
               { icon: RotateCcw, text: '30-Day Returns' },
-              { icon: Award, text: 'Lifetime Warranty' },
             ].map((feature, i) => (
-              <div key={i} className="flex items-center justify-center space-x-3 text-white/70">
-                <feature.icon size={20} className="text-brand-accent" />
-                <span className="text-xs font-bold uppercase tracking-widest">{feature.text}</span>
+              <div key={i} className="flex items-center justify-center space-x-4 text-white/80 group">
+                <div className="p-2 bg-white/5 rounded-full group-hover:bg-brand-accent/20 transition-colors">
+                  <feature.icon size={22} className="text-brand-accent" />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-[0.2em]">{feature.text}</span>
               </div>
             ))}
           </div>
@@ -157,73 +173,25 @@ export default function Home() {
       <section className="bg-white py-12 border-b border-gray-100 overflow-hidden">
         <div className="relative flex overflow-x-hidden">
           <motion.div 
-            animate={{ x: [0, -4000] }}
+            animate={{ x: ["0%", "-33.3333%"] }}
             transition={{ 
-              duration: 60, 
+              duration: Math.max(brands.length * 4, 20), 
               repeat: Infinity, 
               ease: "linear" 
             }}
-            className="flex whitespace-nowrap space-x-16 items-center"
+            className="flex whitespace-nowrap items-center"
           >
-            {[
-              { name: 'GLOCK', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Glock_Logo.svg/1200px-Glock_Logo.svg.png' },
-              { name: 'HERITAGE', image: 'https://heritagemfg.com/wp-content/themes/heritage/assets/images/logo.png' },
-              { name: 'TAURUS', image: 'https://www.taurususa.com/assets/images/logo-taurus.png' },
-              { name: 'ROSSI', image: 'https://www.rossiusa.com/assets/images/logo-rossi.png' },
-              { name: 'RUGER', image: 'https://ruger.com/images/logos/ruger-logo-red.png' },
-              { name: 'WALTHER', image: 'https://waltherarms.com/wp-content/uploads/Walther-Logo-Black.png' },
-              { name: 'SIG SAUER', image: 'https://www.sigsauer.com/media/logo/default/sig-sauer-logo.png' },
-              { name: 'SMITH & WESSON', image: 'https://www.smith-wesson.com/sites/default/files/sw_logo_black.png' },
-              { name: 'BERETTA', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Beretta_logo.svg/1200px-Beretta_logo.svg.png' },
-              { name: 'COLT', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Colt_Logo.svg/1200px-Colt_Logo.svg.png' },
-              { name: 'SPRINGFIELD ARMORY', image: 'https://www.springfield-armory.com/wp-content/themes/springfield-armory/assets/images/logo.png' },
-              { name: 'HECKLER & KOCH', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Heckler_%26_Koch_logo.svg/1200px-Heckler_%26_Koch_logo.svg.png' },
-              { name: 'FN HERSTAL', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/FN_Herstal_logo.svg/1200px-FN_Herstal_logo.svg.png' },
-              { name: 'CZ', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/CZ_logo.svg/1200px-CZ_logo.svg.png' },
-              { name: 'DANIEL DEFENSE', image: 'https://danieldefense.com/media/logo/default/dd-logo.png' },
-              { name: 'KIMBER', image: 'https://www.kimberamerica.com/static/version1643212800/frontend/Kimber/default/en_US/images/logo.svg' },
-              { name: 'MOSSBERG', image: 'https://www.mossberg.com/skin/frontend/mossberg/default/images/logo.png' },
-              { name: 'REMINGTON', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Remington_Arms_logo.svg/1200px-Remington_Arms_logo.svg.png' },
-              { name: 'WINCHESTER', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Winchester_Repeating_Arms_logo.svg/1200px-Winchester_Repeating_Arms_logo.svg.png' },
-              { name: 'BROWNING', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Browning_Arms_Company_logo.svg/1200px-Browning_Arms_Company_logo.svg.png' },
-              { name: 'SAVAGE ARMS', image: 'https://www.savagearms.com/assets/images/logo.png' },
-              { name: 'HENRY', image: 'https://www.henryusa.com/wp-content/themes/henryusa/images/logo.png' },
-              { name: 'BARRETT', image: 'https://barrett.net/wp-content/themes/barrett/images/logo.png' },
-              { name: 'BENELLI', image: 'https://www.benelliusa.com/sites/default/files/benelli_logo.png' },
-              { name: 'CANIK', image: 'https://www.canikusa.com/media/logo/default/canik-logo.png' },
-              { name: 'KEL-TEC', image: 'https://www.keltecweapons.com/wp-content/themes/keltec/assets/images/logo.png' },
-              { name: 'STEYR ARMS', image: 'https://www.steyr-arms.com/wp-content/themes/steyrarms/assets/images/logo.png' },
-              { name: 'TIKKA', image: 'https://www.tikka.fi/sites/default/files/tikka_logo.png' },
-              { name: 'SAKO', image: 'https://www.sako.fi/sites/default/files/sako_logo.png' },
-              // Duplicate for seamless loop
-              { name: 'GLOCK', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Glock_Logo.svg/1200px-Glock_Logo.svg.png' },
-              { name: 'HERITAGE', image: 'https://heritagemfg.com/wp-content/themes/heritage/assets/images/logo.png' },
-              { name: 'TAURUS', image: 'https://www.taurususa.com/assets/images/logo-taurus.png' },
-              { name: 'ROSSI', image: 'https://www.rossiusa.com/assets/images/logo-rossi.png' },
-              { name: 'RUGER', image: 'https://ruger.com/images/logos/ruger-logo-red.png' },
-              { name: 'WALTHER', image: 'https://waltherarms.com/wp-content/uploads/Walther-Logo-Black.png' },
-              { name: 'SIG SAUER', image: 'https://www.sigsauer.com/media/logo/default/sig-sauer-logo.png' },
-              { name: 'SMITH & WESSON', image: 'https://www.smith-wesson.com/sites/default/files/sw_logo_black.png' },
-              { name: 'BERETTA', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Beretta_logo.svg/1200px-Beretta_logo.svg.png' },
-              { name: 'COLT', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Colt_Logo.svg/1200px-Colt_Logo.svg.png' },
-            ].map((brand, i) => (
+            {displayBrands.map((brand, i) => (
               <div 
                 key={i} 
-                className="relative w-48 h-20 flex items-center justify-center group cursor-default"
+                className="flex-shrink-0 w-[250px] h-24 flex items-center justify-center px-8 group cursor-default"
               >
                 <img 
                   src={brand.image} 
                   alt={brand.name} 
                   className="max-w-full max-h-full object-contain opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
                   referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    // Fallback if image fails to load
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
                 />
-                <span className="absolute inset-0 flex items-center justify-center text-sm font-black uppercase tracking-tighter text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  {brand.name}
-                </span>
               </div>
             ))}
           </motion.div>
@@ -441,6 +409,7 @@ export default function Home() {
                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Full Name</label>
                         <input 
                           type="text" 
+                          required
                           placeholder="John Doe" 
                           className="input-field bg-gray-50/50 border-gray-100 focus:bg-white transition-all"
                         />
@@ -449,6 +418,7 @@ export default function Home() {
                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Email Address</label>
                         <input 
                           type="email" 
+                          required
                           placeholder="john@example.com" 
                           className="input-field bg-gray-50/50 border-gray-100 focus:bg-white transition-all"
                         />
@@ -469,6 +439,7 @@ export default function Home() {
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Your Message</label>
                       <textarea 
                         rows={6} 
+                        required
                         placeholder="Tell us about your requirements..." 
                         className="input-field bg-gray-50/50 border-gray-100 focus:bg-white transition-all resize-none"
                       ></textarea>

@@ -34,10 +34,21 @@ export default function AdminMedia() {
     'about_who_we_are_image': '',
     'about_mission_image': '',
     'brand_logo_1': '',
+    'brand_name_1': '',
     'brand_logo_2': '',
+    'brand_name_2': '',
     'brand_logo_3': '',
+    'brand_name_3': '',
     'brand_logo_4': '',
+    'brand_name_4': '',
     'brand_logo_5': '',
+    'brand_name_5': '',
+    'brand_logo_6': '',
+    'brand_name_6': '',
+    'brand_logo_7': '',
+    'brand_name_7': '',
+    'brand_logo_8': '',
+    'brand_name_8': '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -71,8 +82,7 @@ export default function AdminMedia() {
     try {
       const { data } = await supabase
         .from('site_content')
-        .select('*')
-        .eq('type', 'image');
+        .select('*');
       
       if (data) {
         const newContent = { ...content };
@@ -98,7 +108,7 @@ export default function AdminMedia() {
       const updates = Object.entries(content).map(([key, value]) => ({
         key,
         value,
-        type: 'image'
+        type: key.includes('logo') || key.includes('image') ? 'image' : 'text'
       }));
 
       const { error } = await supabase
@@ -106,7 +116,7 @@ export default function AdminMedia() {
         .upsert(updates, { onConflict: 'key' });
 
       if (error) throw error;
-      toast.success('Media assets updated successfully');
+      toast.success('Media and brand assets updated successfully');
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -240,34 +250,29 @@ export default function AdminMedia() {
             </div>
             <p className="text-xs text-gray-400">
               These logos appear in the scrolling brand slider on the home page. 
-              Upload high-quality logos with transparent backgrounds if possible.
+              Enter the brand name and upload high-quality logos with transparent backgrounds.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <ImageUpload 
-                label="Brand 1"
-                value={content['brand_logo_1']}
-                onChange={(url) => setContent({ ...content, 'brand_logo_1': url })}
-              />
-              <ImageUpload 
-                label="Brand 2"
-                value={content['brand_logo_2']}
-                onChange={(url) => setContent({ ...content, 'brand_logo_2': url })}
-              />
-              <ImageUpload 
-                label="Brand 3"
-                value={content['brand_logo_3']}
-                onChange={(url) => setContent({ ...content, 'brand_logo_3': url })}
-              />
-              <ImageUpload 
-                label="Brand 4"
-                value={content['brand_logo_4']}
-                onChange={(url) => setContent({ ...content, 'brand_logo_4': url })}
-              />
-              <ImageUpload 
-                label="Brand 5"
-                value={content['brand_logo_5']}
-                onChange={(url) => setContent({ ...content, 'brand_logo_5': url })}
-              />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                <div key={num} className="space-y-4 p-4 bg-brand-muted border border-gray-100">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Brand {num} Name</label>
+                    <input 
+                      type="text"
+                      value={content[`brand_name_${num}`]}
+                      onChange={(e) => setContent({ ...content, [`brand_name_${num}`]: e.target.value })}
+                      placeholder="e.g. GLOCK"
+                      className="input-field text-xs"
+                    />
+                  </div>
+                  <ImageUpload 
+                    label={`Brand ${num} Logo`}
+                    value={content[`brand_logo_${num}`]}
+                    onChange={(url) => setContent({ ...content, [`brand_logo_${num}`]: url })}
+                  />
+                </div>
+              ))}
             </div>
           </section>
         </form>

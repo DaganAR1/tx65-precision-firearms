@@ -19,7 +19,7 @@ const TAX_RATES: Record<string, number> = {
 export default function Cart() {
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const { cartItems, removeFromCart, subtotal, clearCart } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, subtotal, clearCart } = useCart();
   
   const [deliveryType, setDeliveryType] = useState<'shipping' | 'pickup'>('shipping');
   const [fflSearchZip, setFflSearchZip] = useState('');
@@ -289,18 +289,43 @@ export default function Cart() {
                   <h1 className="text-5xl font-black uppercase tracking-tighter mb-12">Your Cart</h1>
                   <div className="space-y-6">
                     {cartItems.map((item) => (
-                      <div key={item.id} className="flex items-center space-x-6 py-6 border-b border-gray-100">
+                      <div key={(item as any).cartItemId || item.id} className="flex items-center space-x-6 py-6 border-b border-gray-100">
                         <div className="w-24 h-24 bg-brand-muted overflow-hidden flex-shrink-0">
                           <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         </div>
                         <div className="flex-1">
                           <span className="text-[10px] font-black uppercase tracking-widest text-brand-accent">{item.category}</span>
                           <h3 className="text-lg font-bold uppercase tracking-tight mb-1">{item.name}</h3>
-                          <p className="text-sm text-gray-400">Quantity: {item.quantity}</p>
+                          {item.selectedOptions && Object.entries(item.selectedOptions).length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {Object.entries(item.selectedOptions).map(([k, v]) => (
+                                <span key={k} className="text-[9px] font-bold uppercase tracking-widest bg-gray-100 px-2 py-0.5 text-gray-500">
+                                  {k}: {v}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center border border-gray-200">
+                              <button 
+                                onClick={() => updateQuantity((item as any).cartItemId || item.id, item.quantity - 1)}
+                                className="px-2 py-1 hover:bg-gray-50"
+                              >
+                                -
+                              </button>
+                              <span className="px-3 py-1 text-xs font-bold">{item.quantity}</span>
+                              <button 
+                                onClick={() => updateQuantity((item as any).cartItemId || item.id, item.quantity + 1)}
+                                className="px-2 py-1 hover:bg-gray-50"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold mb-2">{formatPrice(item.price)}</p>
-                          <button onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                          <p className="font-bold mb-2">{formatPrice(item.finalPrice || item.price)}</p>
+                          <button onClick={() => removeFromCart((item as any).cartItemId || item.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                             <Trash2 size={18} />
                           </button>
                         </div>

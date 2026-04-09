@@ -70,7 +70,11 @@ export default function Shop() {
     const matchesSpecs = Object.entries(selectedSpecs).every(([key, values]) => {
       if (values.length === 0) return true;
       const productValue = p.specs?.[key];
-      return productValue && values.includes(productValue);
+      if (!productValue) return false;
+      if (Array.isArray(productValue)) {
+        return productValue.some(v => values.includes(v));
+      }
+      return values.includes(productValue);
     });
 
     return matchesSearch && matchesPrice && matchesSpecs;
@@ -101,7 +105,11 @@ export default function Shop() {
         Object.entries(p.specs).forEach(([key, value]) => {
           if (relevantKeys.includes(key)) {
             if (!specs[key]) specs[key] = new Set();
-            specs[key].add(value);
+            if (Array.isArray(value)) {
+              value.forEach(v => specs[key].add(v));
+            } else {
+              specs[key].add(value);
+            }
           }
         });
       }

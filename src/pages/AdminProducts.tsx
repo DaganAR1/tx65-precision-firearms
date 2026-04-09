@@ -267,6 +267,31 @@ export default function AdminProducts() {
     bulkAbortController.current?.abort();
   };
 
+  const addImageField = () => {
+    setEditingProduct(prev => ({
+      ...prev!,
+      images: [...(prev?.images || []), '']
+    }));
+  };
+
+  const updateImage = (index: number, url: string) => {
+    setEditingProduct(prev => {
+      if (!prev) return null;
+      const images = [...(prev.images || [])];
+      images[index] = url;
+      return { ...prev, images };
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setEditingProduct(prev => {
+      if (!prev) return null;
+      const images = [...(prev.images || [])];
+      images.splice(index, 1);
+      return { ...prev, images };
+    });
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -314,6 +339,92 @@ export default function AdminProducts() {
     });
   };
 
+  const updateSpecPrice = (key: string, value: string, price: number) => {
+    setEditingProduct(prev => {
+      if (!prev) return null;
+      const spec_prices = { ...(prev.spec_prices || {}) };
+      if (!spec_prices[key]) spec_prices[key] = {};
+      spec_prices[key][value] = price;
+      return { ...prev, spec_prices };
+    });
+  };
+
+  const addSpecRule = () => {
+    setEditingProduct(prev => ({
+      ...prev!,
+      spec_rules: [
+        ...(prev?.spec_rules || []),
+        { if_spec: '', if_value: '', then_not_spec: '', then_not_value: '' }
+      ]
+    }));
+  };
+
+  const updateSpecRule = (index: number, field: string, value: string) => {
+    setEditingProduct(prev => {
+      if (!prev) return null;
+      const spec_rules = [...(prev.spec_rules || [])];
+      spec_rules[index] = { ...spec_rules[index], [field]: value };
+      return { ...prev, spec_rules };
+    });
+  };
+
+  const removeSpecRule = (index: number) => {
+    setEditingProduct(prev => {
+      if (!prev) return null;
+      const spec_rules = [...(prev.spec_rules || [])];
+      spec_rules.splice(index, 1);
+      return { ...prev, spec_rules };
+    });
+  };
+
+  const updateSpecValue = (key: string, index: number, newValue: string) => {
+    setEditingProduct(prev => {
+      if (!prev) return null;
+      const specs = { ...(prev.specs || {}) };
+      const values = Array.isArray(specs[key]) ? [...specs[key]] : [specs[key]];
+      values[index] = newValue;
+      specs[key] = values;
+      return { ...prev, specs };
+    });
+  };
+
+  const addSpecValue = (key: string) => {
+    setEditingProduct(prev => {
+      if (!prev) return null;
+      const specs = { ...(prev.specs || {}) };
+      const values = Array.isArray(specs[key]) ? [...specs[key]] : [specs[key]];
+      specs[key] = [...values, ''];
+      return { ...prev, specs };
+    });
+  };
+
+  const removeSpecValue = (key: string, index: number) => {
+    setEditingProduct(prev => {
+      if (!prev) return null;
+      const specs = { ...(prev.specs || {}) };
+      const values = Array.isArray(specs[key]) ? [...specs[key]] : [specs[key]];
+      if (values.length <= 1) {
+        delete specs[key];
+      } else {
+        values.splice(index, 1);
+        specs[key] = values;
+      }
+      return { ...prev, specs };
+    });
+  };
+
+  const updateSpecKey = (oldKey: string, newKey: string) => {
+    if (oldKey === newKey) return;
+    setEditingProduct(prev => {
+      if (!prev) return null;
+      const specs = { ...(prev.specs || {}) };
+      const value = specs[oldKey];
+      delete specs[oldKey];
+      specs[newKey] = value;
+      return { ...prev, specs };
+    });
+  };
+
   const removeSpec = (key: string) => {
     setEditingProduct(prev => {
       if (!prev) return null;
@@ -327,10 +438,11 @@ export default function AdminProducts() {
   };
 
   const addSpecField = () => {
-    const key = prompt('Enter specification name (e.g., Manufacturer, Caliber, Action):');
-    if (key) {
-      updateSpec(key, '');
-    }
+    const newKey = `New Spec ${Object.keys(editingProduct?.specs || {}).length + 1}`;
+    setEditingProduct(prev => ({
+      ...prev!,
+      specs: { ...(prev?.specs || {}), [newKey]: [''] }
+    }));
   };
 
   const handleDelete = async (id: string) => {
@@ -717,6 +829,44 @@ export default function AdminProducts() {
                 onChange={(url) => setEditingProduct({ ...editingProduct, image_url: url })}
               />
 
+              <div className="space-y-4 pt-6 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Product Gallery</label>
+                  <button 
+                    type="button"
+                    onClick={addImageField}
+                    className="text-[10px] font-black uppercase tracking-widest text-brand-accent hover:underline flex items-center space-x-1"
+                  >
+                    <Plus size={12} />
+                    <span>Add Image</span>
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  {(editingProduct?.images || []).map((url, index) => (
+                    <div key={index} className="flex items-center space-x-4">
+                      <div className="flex-1">
+                        <ImageUpload 
+                          label={`Gallery Image ${index + 1}`}
+                          value={url}
+                          onChange={(newUrl) => updateImage(index, newUrl)}
+                        />
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="p-2 text-gray-300 hover:text-red-500 transition-colors mt-6"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  {(editingProduct?.images || []).length === 0 && (
+                    <p className="text-[10px] text-gray-400 italic">No gallery images added. The main image will be used by default.</p>
+                  )}
+                </div>
+              </div>
+
               <div className="flex items-center space-x-3 p-4 bg-brand-muted border border-gray-100">
                 <input
                   type="checkbox"
@@ -744,42 +894,175 @@ export default function AdminProducts() {
               {/* Specifications Section */}
               <div className="space-y-4 pt-6 border-t border-gray-100">
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Specifications (For Filters)</label>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Technical Specifications</label>
+                    <p className="text-[9px] text-gray-400 uppercase tracking-tight">Add custom specs like Caliber, Barrel Length, or Capacity.</p>
+                  </div>
                   <button 
                     type="button"
                     onClick={addSpecField}
-                    className="text-[10px] font-black uppercase tracking-widest text-brand-accent hover:underline flex items-center space-x-1"
+                    className="p-2 bg-brand-accent/10 text-brand-accent hover:bg-brand-accent hover:text-white transition-all rounded-sm flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest"
                   >
-                    <Plus size={12} />
-                    <span>Add Spec</span>
+                    <Plus size={14} />
+                    <span>Add Specification</span>
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(editingProduct?.specs || {}).map(([key, value]) => (
-                    <div key={key} className="space-y-1 relative group">
-                      <label className="text-[9px] font-bold uppercase tracking-widest text-gray-500">{key}</label>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={value}
-                          onChange={(e) => updateSpec(key, e.target.value)}
-                          className="input-field !py-2 text-xs"
-                          placeholder={`Enter ${key}...`}
-                        />
+                <div className="space-y-4">
+                  {Object.entries(editingProduct?.specs || {}).map(([key, value], index) => {
+                    const values = Array.isArray(value) ? value : [value];
+                    return (
+                      <div key={index} className="bg-brand-muted p-4 border border-gray-100 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 max-w-xs">
+                            <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 block mb-1">Spec Name</label>
+                            <input
+                              type="text"
+                              value={key}
+                              onChange={(e) => updateSpecKey(key, e.target.value)}
+                              className="w-full bg-white border border-gray-200 px-3 py-2 text-xs font-bold uppercase tracking-tight focus:border-brand-accent outline-none"
+                              placeholder="e.g. Color"
+                            />
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => removeSpec(key)}
+                            className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                            title="Remove Entire Specification"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 block">Values</label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {values.map((val, idx) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <div className="flex-1 flex flex-col space-y-1">
+                                  <input
+                                    type="text"
+                                    value={val}
+                                    onChange={(e) => updateSpecValue(key, idx, e.target.value)}
+                                    className="w-full bg-white border border-gray-200 px-3 py-2 text-xs focus:border-brand-accent outline-none"
+                                    placeholder="Enter value..."
+                                  />
+                                  <div className="flex items-center space-x-2">
+                                    <label className="text-[7px] font-black uppercase tracking-widest text-gray-400">Price +$</label>
+                                    <input
+                                      type="number"
+                                      value={editingProduct?.spec_prices?.[key]?.[val] || 0}
+                                      onChange={(e) => updateSpecPrice(key, val, parseFloat(e.target.value))}
+                                      className="w-20 bg-white border border-gray-200 px-2 py-1 text-[10px] focus:border-brand-accent outline-none"
+                                      placeholder="0.00"
+                                    />
+                                  </div>
+                                </div>
+                                <button 
+                                  type="button"
+                                  onClick={() => removeSpecValue(key, idx)}
+                                  className="p-1.5 text-gray-300 hover:text-red-500 transition-colors self-start mt-1"
+                                  title="Remove Value"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            ))}
+                            <button 
+                              type="button"
+                              onClick={() => addSpecValue(key)}
+                              className="flex items-center justify-center space-x-2 p-2 border border-dashed border-gray-300 text-[9px] font-bold uppercase tracking-widest text-gray-500 hover:border-brand-accent hover:text-brand-accent transition-all"
+                            >
+                              <Plus size={12} />
+                              <span>Add Value</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {Object.keys(editingProduct?.specs || {}).length === 0 && (
+                    <div className="text-center py-8 border-2 border-dashed border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">No specifications added yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Incompatibility Rules Section */}
+              <div className="space-y-4 pt-6 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Incompatibility Rules</label>
+                    <p className="text-[9px] text-gray-400 uppercase tracking-tight">Prevent certain combinations of specs.</p>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={addSpecRule}
+                    className="p-2 bg-brand-accent/10 text-brand-accent hover:bg-brand-accent hover:text-white transition-all rounded-sm flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest"
+                  >
+                    <Plus size={14} />
+                    <span>Add Rule</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {(editingProduct?.spec_rules || []).map((rule, index) => (
+                    <div key={index} className="bg-brand-muted p-4 border border-gray-100 space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[8px] font-black uppercase tracking-widest text-gray-400">If Spec</label>
+                          <select 
+                            value={rule.if_spec}
+                            onChange={(e) => updateSpecRule(index, 'if_spec', e.target.value)}
+                            className="w-full bg-white border border-gray-200 px-3 py-2 text-xs outline-none"
+                          >
+                            <option value="">Select Spec</option>
+                            {Object.keys(editingProduct?.specs || {}).map(k => <option key={k} value={k}>{k}</option>)}
+                          </select>
+                          <label className="text-[8px] font-black uppercase tracking-widest text-gray-400">Is Value</label>
+                          <select 
+                            value={rule.if_value}
+                            onChange={(e) => updateSpecRule(index, 'if_value', e.target.value)}
+                            className="w-full bg-white border border-gray-200 px-3 py-2 text-xs outline-none"
+                          >
+                            <option value="">Select Value</option>
+                            {rule.if_spec && (editingProduct?.specs?.[rule.if_spec] as string[] || []).map(v => <option key={v} value={v}>{v}</option>)}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[8px] font-black uppercase tracking-widest text-gray-400">Then Not Spec</label>
+                          <select 
+                            value={rule.then_not_spec}
+                            onChange={(e) => updateSpecRule(index, 'then_not_spec', e.target.value)}
+                            className="w-full bg-white border border-gray-200 px-3 py-2 text-xs outline-none"
+                          >
+                            <option value="">Select Spec</option>
+                            {Object.keys(editingProduct?.specs || {}).map(k => <option key={k} value={k}>{k}</option>)}
+                          </select>
+                          <label className="text-[8px] font-black uppercase tracking-widest text-gray-400">Is Value</label>
+                          <select 
+                            value={rule.then_not_value}
+                            onChange={(e) => updateSpecRule(index, 'then_not_value', e.target.value)}
+                            className="w-full bg-white border border-gray-200 px-3 py-2 text-xs outline-none"
+                          >
+                            <option value="">Select Value</option>
+                            {rule.then_not_spec && (editingProduct?.specs?.[rule.then_not_spec] as string[] || []).map(v => <option key={v} value={v}>{v}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex justify-end">
                         <button 
                           type="button"
-                          onClick={() => removeSpec(key)}
-                          className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                          onClick={() => removeSpecRule(index)}
+                          className="text-red-500 text-[10px] font-bold uppercase tracking-widest flex items-center space-x-1"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={12} />
+                          <span>Remove Rule</span>
                         </button>
                       </div>
                     </div>
                   ))}
-                  {Object.keys(editingProduct?.specs || {}).length === 0 && (
-                    <p className="col-span-2 text-[10px] text-gray-400 italic">No specifications added. Add specs like "Manufacturer" or "Caliber" to enable shop filters.</p>
-                  )}
                 </div>
               </div>
 

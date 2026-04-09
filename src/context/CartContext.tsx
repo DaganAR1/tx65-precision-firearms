@@ -3,13 +3,15 @@ import { Product } from '../types';
 
 interface CartItem extends Product {
   quantity: number;
+  selectedOptions?: Record<string, string>;
+  finalPrice: number;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Product, quantity: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, quantity: number, options?: Record<string, string>, finalPrice?: number) => void;
+  removeFromCart: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   subtotal: number;
   itemCount: number;
@@ -27,28 +29,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (product: Product, quantity: number) => {
+  const addToCart = (product: Product, quantity: number, options?: Record<string, string>, finalPrice?: number) => {
     setCartItems(prev => {
-      const existingItem = prev.find(item => item.id === product.id);
+      const itemPrice = finalPrice || product.price;
+      const optionsKey = options ? JSON.stringify(options) : '';
+      
+      const existingItem = prev.find(item => 
+        item.id === product.id && JSON.stringify(item.selectedOptions || {}) === optionsKey
+      );
+
       if (existingItem) {
         return prev.map(item => 
-          item.id === product.id 
+          (item.id === product.id && JSON.stringify(item.selectedOptions || {}) === optionsKey)
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      return [...prev, { ...product, quantity }];
+
+      // Generate a unique ID for the cart item to allow multiple versions of same product
+      const cartItemId = `${product.id}-${Date.now()}`;
+      return [...prev, { ...product, cartItemId, quantity, selectedOptions: options, finalPrice: itemPrice } as any];
     });
   };
 
-  const removeFromCart = (productId: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== productId));
+  const removeFromCart = (cartItemId: string) => {
+    setCartItems(prev => prev.filter(item => (item as any).cartItemId !== cartItemId || item.id !== cartItemId));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (cartItemId: string, quantity: number) => {
     setCartItems(prev => 
       prev.map(item => 
-        item.id === productId ? { ...item, quantity: Math.max(1, quantity) } : item
+        ((item as any).cartItemId === cartItemId || item.id === cartItemId) ? { ...item, quantity: Math.max(1, quantity) } : item
       )
     );
   };
@@ -57,7 +68,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setCartItems([]);
   };
 
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const subtotal = cartItems.reduce((acc, item) => acc + (item.finalPrice || item.price) * item.quantity, 0);
   const itemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (

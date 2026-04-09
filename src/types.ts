@@ -7,10 +7,18 @@ export interface Product {
   price: number;
   category: Category;
   image_url: string;
+  images?: string[];
   stock_quantity: number;
   shipping_price?: number;
   is_best_seller?: boolean;
-  specs: Record<string, string>;
+  specs: Record<string, string | string[]>;
+  spec_prices?: Record<string, Record<string, number>>;
+  spec_rules?: Array<{
+    if_spec: string;
+    if_value: string;
+    then_not_spec: string;
+    then_not_value: string;
+  }>;
   created_at: string;
 }
 

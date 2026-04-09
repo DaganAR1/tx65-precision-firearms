@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { Product } from '../types';
-import { formatPrice } from '../lib/utils';
+import { formatPrice, cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
@@ -16,10 +16,50 @@ export default function ProductDetails() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [activeImage, setActiveImage] = useState<string>('');
+  const [selectedSpecs, setSelectedSpecs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    if (product) {
+      setActiveImage(product.image_url);
+      // Initialize selected specs with first available values
+      const initial: Record<string, string> = {};
+      Object.entries(product.specs || {}).forEach(([key, value]) => {
+        const values = Array.isArray(value) ? value : [value];
+        if (values.length > 0) initial[key] = values[0];
+      });
+      setSelectedSpecs(initial);
+    }
+  }, [product]);
+
+  const calculateTotalPrice = () => {
+    if (!product) return 0;
+    let total = product.price;
+    Object.entries(selectedSpecs).forEach(([key, value]) => {
+      const adjustment = product.spec_prices?.[key]?.[value] || 0;
+      total += adjustment;
+    });
+    return total;
+  };
+
+  const isOptionDisabled = (specKey: string, specValue: string) => {
+    if (!product?.spec_rules) return false;
+    return product.spec_rules.some(rule => {
+      // Check if any CURRENTLY selected spec triggers a rule that forbids THIS specValue
+      const triggerValue = selectedSpecs[rule.if_spec];
+      return triggerValue === rule.if_value && 
+             rule.then_not_spec === specKey && 
+             rule.then_not_value === specValue;
+    });
+  };
+
+  const handleSpecChange = (key: string, value: string) => {
+    setSelectedSpecs(prev => ({ ...prev, [key]: value }));
+  };
 
   const fetchProduct = async () => {
     if (!id) return;
@@ -40,7 +80,8 @@ export default function ProductDetails() {
 
   const handleAddToCart = () => {
     if (product) {
-      addToCart(product, quantity);
+      const finalPrice = calculateTotalPrice();
+      addToCart(product, quantity, selectedSpecs, finalPrice);
       toast.success(`${product.name} added to cart`);
     }
   };
@@ -81,12 +122,38 @@ export default function ProductDetails() {
           >
             <div className="aspect-[4/5] bg-brand-muted overflow-hidden">
               <img 
-                src={product.image_url} 
+                src={activeImage || product.image_url} 
                 alt={product.name} 
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
               />
             </div>
+            
+            {product.images && product.images.length > 0 && (
+              <div className="grid grid-cols-4 gap-4">
+                <button 
+                  onClick={() => setActiveImage(product.image_url)}
+                  className={cn(
+                    "aspect-square bg-brand-muted overflow-hidden border-2 transition-all",
+                    activeImage === product.image_url ? "border-brand-accent" : "border-transparent hover:border-gray-200"
+                  )}
+                >
+                  <img src={product.image_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                </button>
+                {product.images.map((img, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => setActiveImage(img)}
+                    className={cn(
+                      "aspect-square bg-brand-muted overflow-hidden border-2 transition-all",
+                      activeImage === img ? "border-brand-accent" : "border-transparent hover:border-gray-200"
+                    )}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
 
           {/* Product Info */}
@@ -103,7 +170,7 @@ export default function ProductDetails() {
                 {product.name}
               </h1>
               <p className="text-3xl font-medium text-gray-900">
-                {formatPrice(product.price)}
+                {formatPrice(calculateTotalPrice())}
               </p>
             </div>
 
@@ -111,14 +178,76 @@ export default function ProductDetails() {
               <p className="text-lg leading-relaxed">{product.description}</p>
             </div>
 
-            {/* Specs Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-10">
-              {Object.entries(product.specs || {}).map(([key, value]) => (
-                <div key={key} className="p-4 bg-brand-muted border border-gray-100">
-                  <span className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{key}</span>
-                  <span className="block text-sm font-bold uppercase tracking-tight">{value}</span>
-                </div>
-              ))}
+            {/* Configurator Section */}
+            <div className="space-y-8 mb-10">
+              {Object.entries(product.specs || {}).map(([key, value]) => {
+                const values = Array.isArray(value) ? value : [value];
+                if (values.length <= 1 && !product.spec_prices?.[key]) return null; // Skip if only one option and no price impact
+
+                return (
+                  <div key={key} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{key}</label>
+                      {selectedSpecs[key] && product.spec_prices?.[key]?.[selectedSpecs[key]] ? (
+                        <span className="text-[10px] font-bold text-brand-accent">
+                          +{formatPrice(product.spec_prices[key][selectedSpecs[key]])}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {values.map(val => {
+                        const disabled = isOptionDisabled(key, val);
+                        const selected = selectedSpecs[key] === val;
+                        const priceDelta = product.spec_prices?.[key]?.[val];
+
+                        return (
+                          <button
+                            key={val}
+                            disabled={disabled}
+                            onClick={() => handleSpecChange(key, val)}
+                            className={cn(
+                              "px-4 py-2 text-xs font-bold uppercase tracking-widest border-2 transition-all",
+                              selected 
+                                ? "border-brand-accent bg-brand-accent text-white" 
+                                : disabled
+                                  ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed opacity-50"
+                                  : "border-gray-200 hover:border-brand-primary text-brand-primary"
+                            )}
+                          >
+                            <div className="flex flex-col items-center">
+                              <span>{val}</span>
+                              {priceDelta ? (
+                                <span className={cn(
+                                  "text-[8px] mt-0.5",
+                                  selected ? "text-white/80" : "text-gray-400"
+                                )}>
+                                  +{formatPrice(priceDelta)}
+                                </span>
+                              ) : null}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Static Specs (for those that don't have multiple options) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-gray-100 border border-gray-100 mb-10">
+              {Object.entries(product.specs || {}).map(([key, value]) => {
+                const values = Array.isArray(value) ? value : [value];
+                if (values.length > 1 || product.spec_prices?.[key]) return null;
+                return (
+                  <div key={key} className="p-5 bg-white flex flex-col justify-center">
+                    <span className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1.5">{key}</span>
+                    <span className="block text-sm font-bold uppercase tracking-tight text-brand-primary">
+                      {values[0]}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Actions */}

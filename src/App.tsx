@@ -47,13 +47,16 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1">
-            <Link to="/" className="flex items-center space-x-3 mb-6 group">
-              {logoUrl ? (
-                <img src={logoUrl} alt="65guns Logo" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
-              ) : (
-                <span className="text-2xl font-black tracking-tighter">
-                  65<span className="text-brand-accent">GUNS</span>
-                </span>
+            <Link to="/" className="flex items-center mb-6 group min-h-[40px]">
+              {logoUrl && (
+                <img 
+                  src={logoUrl} 
+                  alt="65GUNS" 
+                  className="h-10 w-auto object-contain transition-opacity duration-300" 
+                  referrerPolicy="no-referrer"
+                  onLoad={(e) => (e.currentTarget.style.opacity = '1')}
+                  style={{ opacity: 0 }}
+                />
               )}
             </Link>
             <p className="text-gray-400 max-w-sm mb-8">
@@ -125,13 +128,31 @@ export default function App() {
       .single()
       .then(({ data }) => {
         if (data?.value) {
-          let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
-          if (!link) {
-            link = document.createElement('link');
+          const updateFavicon = (url: string) => {
+            // Remove existing favicons
+            const existingLinks = document.querySelectorAll("link[rel*='icon']");
+            existingLinks.forEach(link => link.parentNode?.removeChild(link));
+
+            // Add new favicon
+            const link = document.createElement('link');
             link.rel = 'icon';
-            document.getElementsByTagName('head')[0].appendChild(link);
-          }
-          link.href = data.value;
+            link.href = url;
+            
+            // Handle different image types
+            if (url.endsWith('.svg')) link.type = 'image/svg+xml';
+            else if (url.endsWith('.png')) link.type = 'image/png';
+            else if (url.endsWith('.ico')) link.type = 'image/x-icon';
+            
+            document.head.appendChild(link);
+
+            // Also add shortcut icon for better compatibility
+            const shortcutLink = document.createElement('link');
+            shortcutLink.rel = 'shortcut icon';
+            shortcutLink.href = url;
+            document.head.appendChild(shortcutLink);
+          };
+
+          updateFavicon(data.value);
         }
       });
   }, []);

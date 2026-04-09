@@ -71,17 +71,17 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            {logoUrl ? (
-              <img src={logoUrl} alt="65guns Logo" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-10 h-10 bg-brand-muted flex items-center justify-center rounded-sm border border-gray-100 group-hover:border-brand-accent transition-colors">
-                <span className="text-[10px] font-black text-gray-400">LOGO</span>
-              </div>
+          <Link to="/" className="flex items-center group min-w-[150px]">
+            {logoUrl && (
+              <img 
+                src={logoUrl} 
+                alt="65GUNS" 
+                className="h-12 w-auto object-contain transition-opacity duration-300" 
+                referrerPolicy="no-referrer"
+                onLoad={(e) => (e.currentTarget.style.opacity = '1')}
+                style={{ opacity: 0 }}
+              />
             )}
-            <span className="text-2xl font-black tracking-tighter text-brand-primary">
-              65<span className="text-brand-accent">GUNS</span>
-            </span>
           </Link>
 
           {/* Desktop Nav */}

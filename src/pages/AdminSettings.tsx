@@ -78,13 +78,25 @@ export default function AdminSettings() {
       
       // Update favicon dynamically
       if (faviconUrl) {
-        let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
-        if (!link) {
-          link = document.createElement('link');
+        const updateFavicon = (url: string) => {
+          const existingLinks = document.querySelectorAll("link[rel*='icon']");
+          existingLinks.forEach(link => link.parentNode?.removeChild(link));
+
+          const link = document.createElement('link');
           link.rel = 'icon';
-          document.getElementsByTagName('head')[0].appendChild(link);
-        }
-        link.href = faviconUrl;
+          link.href = url;
+          if (url.endsWith('.svg')) link.type = 'image/svg+xml';
+          else if (url.endsWith('.png')) link.type = 'image/png';
+          else if (url.endsWith('.ico')) link.type = 'image/x-icon';
+          document.head.appendChild(link);
+
+          const shortcutLink = document.createElement('link');
+          shortcutLink.rel = 'shortcut icon';
+          shortcutLink.href = url;
+          document.head.appendChild(shortcutLink);
+        };
+
+        updateFavicon(faviconUrl);
       }
 
       setTimeout(() => window.location.reload(), 1000);
