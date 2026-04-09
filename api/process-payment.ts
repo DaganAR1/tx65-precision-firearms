@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const merchantAuthenticationType = new AuthorizeNet.APIContracts.MerchantAuthenticationType();
-    merchantAuthenticationType.setApiLoginId(apiLoginId);
+    merchantAuthenticationType.setName(apiLoginId);
     merchantAuthenticationType.setTransactionKey(transactionKey);
 
     const opaqueDataType = new AuthorizeNet.APIContracts.OpaqueDataType();
