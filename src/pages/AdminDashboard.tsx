@@ -15,6 +15,7 @@ import {
   Layout,
   FileText,
   Star,
+  Database,
   Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -106,6 +107,7 @@ export default function AdminDashboard() {
             { name: 'Orders', icon: ShoppingCart, href: '/admin/orders' },
             { name: 'Media Assets', icon: ImageIcon, href: '/admin/media' },
             { name: 'Knowledge Base', icon: FileText, href: '/admin/blog' },
+            { name: 'Database', icon: Database, href: '/admin/backup' },
             { name: 'Settings', icon: Settings, href: '/admin/settings' },
           ].map((item) => (
             <Link

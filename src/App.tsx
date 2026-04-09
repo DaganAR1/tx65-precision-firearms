@@ -16,6 +16,7 @@ import AdminBlog from './pages/AdminBlog';
 import AdminBlogEdit from './pages/AdminBlogEdit';
 import AdminSettings from './pages/AdminSettings';
 import AdminMedia from './pages/AdminMedia';
+import AdminBackup from './pages/AdminBackup';
 import Cart from './pages/Cart';
 import About from './pages/About';
 import Contact from './pages/Contact';
@@ -138,6 +139,7 @@ export default function App() {
               <Route path="/admin/blog/edit/:id" element={<AdminBlogEdit />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/admin/media" element={<AdminMedia />} />
+              <Route path="/admin/backup" element={<AdminBackup />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
