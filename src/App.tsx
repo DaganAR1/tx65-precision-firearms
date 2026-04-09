@@ -120,43 +120,6 @@ function Footer() {
 }
 
 export default function App() {
-  React.useEffect(() => {
-    supabase
-      .from('site_content')
-      .select('value')
-      .eq('key', 'favicon_url')
-      .single()
-      .then(({ data }) => {
-        if (data?.value) {
-          const updateFavicon = (url: string) => {
-            // Remove existing favicons
-            const existingLinks = document.querySelectorAll("link[rel*='icon']");
-            existingLinks.forEach(link => link.parentNode?.removeChild(link));
-
-            // Add new favicon
-            const link = document.createElement('link');
-            link.rel = 'icon';
-            link.href = url;
-            
-            // Handle different image types
-            if (url.endsWith('.svg')) link.type = 'image/svg+xml';
-            else if (url.endsWith('.png')) link.type = 'image/png';
-            else if (url.endsWith('.ico')) link.type = 'image/x-icon';
-            
-            document.head.appendChild(link);
-
-            // Also add shortcut icon for better compatibility
-            const shortcutLink = document.createElement('link');
-            shortcutLink.rel = 'shortcut icon';
-            shortcutLink.href = url;
-            document.head.appendChild(shortcutLink);
-          };
-
-          updateFavicon(data.value);
-        }
-      });
-  }, []);
-
   return (
     <Router>
       <CartProvider>

@@ -161,79 +161,38 @@ export default function Cart() {
       return;
     }
     setIsSearchingFFL(true);
-    
+
     try {
-      const apiKey = import.meta.env.VITE_FFL_API_KEY;
-      
-      // If no API key is provided, we'll fall back to the mock data for demonstration
-      if (!apiKey || apiKey === 'your-ffl-api-key') {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        const mockDealers = [
-          { 
-            id: 'ffl_001', 
-            name: 'Bowie Gun & Pawn', 
-            address: '123 Main St', 
-            city: 'Bowie', 
-            state: 'TX', 
-            zip: '76230', 
-            distance: '1.2 miles', 
-            phone: '(940) 555-0123',
-            ffl_number: '5-75-XXX-XX-XX-01234',
-            transfer_fee: '$25.00'
-          },
-          { 
-            id: 'ffl_002', 
-            name: 'North Texas Firearms', 
-            address: '456 Oak Ave', 
-            city: 'Decatur', 
-            state: 'TX', 
-            zip: '76234', 
-            distance: '15.5 miles', 
-            phone: '(940) 555-0456',
-            ffl_number: '5-75-XXX-XX-XX-05678',
-            transfer_fee: '$30.00'
-          }
-        ];
-        setFflResults(mockDealers);
-        toast.success(`Found ${mockDealers.length} dealers near ${fflSearchZip} (Demo Mode)`);
-        return;
+      const { data, error } = await supabase
+        .from('ffl_dealers')
+        .select('*')
+        .eq('premise_zip', fflSearchZip)
+        .limit(20);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const dealers = data.map((d: any) => ({
+          id: d.id,
+          name: d.business_name || d.license_name || 'Unknown Dealer',
+          address: d.premise_street,
+          city: d.premise_city,
+          state: d.premise_state,
+          zip: d.premise_zip,
+          ffl_number: d.license_number,
+          distance: 'Local',
+          phone: d.phone_number || 'N/A',
+          transfer_fee: 'Contact Dealer'
+        }));
+        setFflResults(dealers);
+        toast.success(`Found ${dealers.length} dealers in ${fflSearchZip}`);
+      } else {
+        setFflResults([]);
+        toast.error(`No FFL dealers found in ZIP code ${fflSearchZip}. Try a nearby ZIP.`);
       }
-
-      // Real API call to FFLs.com
-      const response = await fetch(`https://api.ffls.com/v2/ffls?zip=${fflSearchZip}&radius=${searchRadius}`, {
-        headers: {
-          'x-api-key': apiKey,
-          'Accept': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) throw new Error('Invalid FFL API key');
-        throw new Error('Failed to fetch FFL dealers');
-      }
-
-      const data = await response.json();
-      
-      // Map the API response to our internal format
-      // Note: Adjusting mapping based on common FFL API structures
-      const dealers = (data.dealers || data.data || data).map((d: any) => ({
-        id: d.id || d.license_number || Math.random().toString(),
-        name: d.business_name || d.name || 'Unknown Dealer',
-        address: d.premise_street || d.address || '',
-        city: d.premise_city || d.city || '',
-        state: d.premise_state || d.state || '',
-        zip: d.premise_zip || d.zip || '',
-        distance: d.distance ? `${parseFloat(d.distance).toFixed(1)} miles` : 'N/A',
-        phone: d.phone || d.voice_phone || '',
-        ffl_number: d.license_number || d.ffl_number || '',
-        transfer_fee: d.transfer_fee || '$25.00' // Fallback if fee not provided
-      }));
-
-      setFflResults(dealers);
-      toast.success(`Found ${dealers.length} dealers near ${fflSearchZip}`);
     } catch (error) {
       console.error('FFL Search Error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to find dealers. Please try again.');
+      toast.error('Failed to search FFL dealers. Please try again.');
     } finally {
       setIsSearchingFFL(false);
     }

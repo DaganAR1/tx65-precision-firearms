@@ -15,7 +15,6 @@ import ImageUpload from '../components/ImageUpload';
 
 export default function AdminSettings() {
   const [logoUrl, setLogoUrl] = useState('');
-  const [faviconUrl, setFaviconUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
@@ -48,13 +47,11 @@ export default function AdminSettings() {
     const { data } = await supabase
       .from('site_content')
       .select('*')
-      .in('key', ['site_logo', 'favicon_url']);
+      .in('key', ['site_logo']);
     
     if (data) {
       const logo = data.find(d => d.key === 'site_logo');
-      const favicon = data.find(d => d.key === 'favicon_url');
       if (logo) setLogoUrl(logo.value);
-      if (favicon) setFaviconUrl(favicon.value);
     }
     setLoading(false);
   };
@@ -65,8 +62,7 @@ export default function AdminSettings() {
 
     try {
       const updates = [
-        { key: 'site_logo', value: logoUrl, type: 'image' },
-        { key: 'favicon_url', value: faviconUrl, type: 'image' }
+        { key: 'site_logo', value: logoUrl, type: 'image' }
       ];
 
       const { error } = await supabase
@@ -76,29 +72,6 @@ export default function AdminSettings() {
       if (error) throw error;
       toast.success('Settings updated successfully');
       
-      // Update favicon dynamically
-      if (faviconUrl) {
-        const updateFavicon = (url: string) => {
-          const existingLinks = document.querySelectorAll("link[rel*='icon']");
-          existingLinks.forEach(link => link.parentNode?.removeChild(link));
-
-          const link = document.createElement('link');
-          link.rel = 'icon';
-          link.href = url;
-          if (url.endsWith('.svg')) link.type = 'image/svg+xml';
-          else if (url.endsWith('.png')) link.type = 'image/png';
-          else if (url.endsWith('.ico')) link.type = 'image/x-icon';
-          document.head.appendChild(link);
-
-          const shortcutLink = document.createElement('link');
-          shortcutLink.rel = 'shortcut icon';
-          shortcutLink.href = url;
-          document.head.appendChild(shortcutLink);
-        };
-
-        updateFavicon(faviconUrl);
-      }
-
       setTimeout(() => window.location.reload(), 1000);
     } catch (error: any) {
       toast.error(error.message);
@@ -168,28 +141,6 @@ export default function AdminSettings() {
                     <span className="text-xl font-black tracking-tighter text-brand-primary">
                       65<span className="text-brand-accent">GUNS</span>
                     </span>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-gray-900">Favicon URL</h4>
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    Enter the URL for your site's favicon (the small icon in the browser tab).
-                  </p>
-                  <div className="space-y-2">
-                    <input 
-                      type="text" 
-                      value={faviconUrl} 
-                      onChange={(e) => setFaviconUrl(e.target.value)}
-                      placeholder="https://example.com/favicon.ico"
-                      className="input-field"
-                    />
-                    {faviconUrl && (
-                      <div className="flex items-center space-x-2 p-2 bg-brand-muted border border-gray-100">
-                        <img src={faviconUrl} alt="Favicon Preview" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Preview</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
