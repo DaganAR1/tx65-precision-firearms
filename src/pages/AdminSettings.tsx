@@ -15,6 +15,7 @@ import ImageUpload from '../components/ImageUpload';
 
 export default function AdminSettings() {
   const [logoUrl, setLogoUrl] = useState('');
+  const [faviconUrl, setFaviconUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
@@ -47,11 +48,13 @@ export default function AdminSettings() {
     const { data } = await supabase
       .from('site_content')
       .select('*')
-      .eq('key', 'site_logo')
-      .single();
+      .in('key', ['site_logo', 'favicon_url']);
     
     if (data) {
-      setLogoUrl(data.value);
+      const logo = data.find(d => d.key === 'site_logo');
+      const favicon = data.find(d => d.key === 'favicon_url');
+      if (logo) setLogoUrl(logo.value);
+      if (favicon) setFaviconUrl(favicon.value);
     }
     setLoading(false);
   };
@@ -61,20 +64,30 @@ export default function AdminSettings() {
     setSaving(true);
 
     try {
+      const updates = [
+        { key: 'site_logo', value: logoUrl, type: 'image' },
+        { key: 'favicon_url', value: faviconUrl, type: 'image' }
+      ];
+
       const { error } = await supabase
         .from('site_content')
-        .upsert({
-          key: 'site_logo',
-          value: logoUrl,
-          type: 'image'
-        }, { onConflict: 'key' });
+        .upsert(updates, { onConflict: 'key' });
 
       if (error) throw error;
       toast.success('Settings updated successfully');
-      // Refresh the page to show new logo in navbar if needed, 
-      // but usually a state update in a context would be better.
-      // For now, just a success message.
-      window.location.reload(); 
+      
+      // Update favicon dynamically
+      if (faviconUrl) {
+        let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.getElementsByTagName('head')[0].appendChild(link);
+        }
+        link.href = faviconUrl;
+      }
+
+      setTimeout(() => window.location.reload(), 1000);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -143,6 +156,28 @@ export default function AdminSettings() {
                     <span className="text-xl font-black tracking-tighter text-brand-primary">
                       65<span className="text-brand-accent">GUNS</span>
                     </span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-gray-900">Favicon URL</h4>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Enter the URL for your site's favicon (the small icon in the browser tab).
+                  </p>
+                  <div className="space-y-2">
+                    <input 
+                      type="text" 
+                      value={faviconUrl} 
+                      onChange={(e) => setFaviconUrl(e.target.value)}
+                      placeholder="https://example.com/favicon.ico"
+                      className="input-field"
+                    />
+                    {faviconUrl && (
+                      <div className="flex items-center space-x-2 p-2 bg-brand-muted border border-gray-100">
+                        <img src={faviconUrl} alt="Favicon Preview" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Preview</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -16,6 +16,7 @@ import {
   FileText,
   Star,
   Database,
+  AlertTriangle,
   Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -33,6 +34,7 @@ export default function AdminDashboard() {
     { label: 'Total Customers', value: '0', trend: '0%', icon: Users },
   ]);
   const [loading, setLoading] = useState(true);
+  const [dbConnected, setDbConnected] = useState<boolean | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -62,6 +64,14 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Test connection first
+      const { error: connError } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
+      if (connError) {
+        setDbConnected(false);
+        throw connError;
+      }
+      setDbConnected(true);
+
       const [prodRes, orderRes, allOrdersRes, bestSellersRes] = await Promise.all([
         supabase.from('products').select('*').limit(5),
         supabase.from('orders').select('*, profiles(full_name)').order('created_at', { ascending: false }).limit(5),
@@ -130,7 +140,19 @@ export default function AdminDashboard() {
         <header className="flex justify-between items-center mb-12">
           <div>
             <h1 className="text-3xl font-black uppercase tracking-tighter">Dashboard Overview</h1>
-            <p className="text-gray-500 text-sm">Welcome back, Administrator.</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <p className="text-gray-500 text-sm">Welcome back, Administrator.</p>
+              <span className="text-gray-300">|</span>
+              <div className="flex items-center space-x-1.5">
+                <div className={cn(
+                  "w-2 h-2 rounded-full",
+                  dbConnected === true ? "bg-green-500" : dbConnected === false ? "bg-red-500" : "bg-gray-300 animate-pulse"
+                )} />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  {dbConnected === true ? "Database Connected" : dbConnected === false ? "Connection Failed" : "Connecting..."}
+                </span>
+              </div>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             <div className="relative">
@@ -144,6 +166,21 @@ export default function AdminDashboard() {
         </header>
 
         {/* Stats Grid */}
+        {dbConnected === false && (
+          <div className="mb-12 bg-red-50 border border-red-100 p-6 flex items-start space-x-4">
+            <div className="p-2 bg-red-100 text-red-600 rounded-full">
+              <AlertTriangle size={20} />
+            </div>
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-tight text-red-900">Database Connection Failed</h3>
+              <p className="text-xs text-red-700 mt-1 leading-relaxed">
+                The website is unable to reach your Supabase database. This is usually caused by missing or incorrect environment variables.
+                Please ensure <span className="font-mono font-bold">VITE_SUPABASE_URL</span> and <span className="font-mono font-bold">VITE_SUPABASE_ANON_KEY</span> are correctly set in your project secrets.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {stats.map((stat, i) => (
             <div key={i} className="bg-white p-6 border border-gray-100 shadow-sm">

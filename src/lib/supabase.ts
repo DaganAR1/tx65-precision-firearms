@@ -4,7 +4,12 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials missing. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.');
+  const errorMsg = 'CRITICAL: Supabase credentials missing. The website cannot connect to the database. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables in the Secrets panel.';
+  console.error(errorMsg);
+  if (typeof window !== 'undefined') {
+    // We don't want to crash the whole app immediately, but we want to make it obvious
+    // In a real app, you might redirect to a setup page or show a global error banner.
+  }
 }
 
 export const supabase = createClient(
