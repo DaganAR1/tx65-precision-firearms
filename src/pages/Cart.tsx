@@ -119,38 +119,50 @@ export default function Cart() {
     };
 
     // @ts-ignore
+    if (!window.Accept) {
+      setIsCheckingOut(false);
+      toast.error('Payment system failed to load. Please refresh the page.');
+      return;
+    }
+
+    // @ts-ignore
     window.Accept.dispatch(secureData, async (response: any) => {
       if (response.messages.resultCode === "Error") {
         setIsCheckingOut(false);
-        response.messages.message.forEach((msg: any) => {
-          toast.error(`Payment Error: ${msg.text}`);
-        });
-      } else {
-        // 3. Send token to server to process payment
-        try {
-          const processResponse = await fetch('/api/process-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              opaqueData: response.opaqueData,
-              orderData
-            }),
-          });
+        toast.error(response.messages.message[0].text || 'Failed to tokenize payment information');
+        return;
+      }
 
-          const result = await processResponse.json();
-          if (result.success) {
-            toast.success('Order placed successfully!');
-            clearCart();
-            window.location.href = '/checkout/success';
-          } else {
-            throw new Error(result.error || 'Payment processing failed');
-          }
-        } catch (error: any) {
-          console.error('Payment processing error:', error);
-          toast.error(error.message || 'Failed to process payment. Please try again.');
-        } finally {
-          setIsCheckingOut(false);
+      if (!response.opaqueData) {
+        setIsCheckingOut(false);
+        toast.error('Failed to generate secure payment token. Please try again.');
+        return;
+      }
+
+      // 3. Send token to server to process payment
+      try {
+        const processResponse = await fetch('/api/process-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            opaqueData: response.opaqueData,
+            orderData
+          }),
+        });
+
+        const result = await processResponse.json();
+        if (result.success) {
+          toast.success('Order placed successfully!');
+          clearCart();
+          window.location.href = '/checkout/success';
+        } else {
+          throw new Error(result.error || 'Payment processing failed');
         }
+      } catch (error: any) {
+        console.error('Payment processing error:', error);
+        toast.error(error.message || 'Failed to process payment. Please try again.');
+      } finally {
+        setIsCheckingOut(false);
       }
     });
   };
