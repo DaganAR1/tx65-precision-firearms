@@ -5,10 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 // Initialize Supabase Admin for server-side operations
 const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
-const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co', 
-  supabaseServiceKey || 'placeholder-key'
-);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -16,15 +13,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const { opaqueData, orderData } = req.body;
+  console.log('Processing payment request for order total:', orderData?.total);
 
   const apiLoginId = process.env.AUTHORIZENET_API_LOGIN_ID;
   const transactionKey = process.env.AUTHORIZENET_TRANSACTION_KEY;
 
   if (!apiLoginId || !transactionKey) {
+    console.error('Authorize.net credentials missing in environment');
     return res.status(500).json({ error: "Authorize.net is not configured." });
   }
 
   try {
+    console.log('Initializing Authorize.net transaction...');
     const merchantAuthenticationType = new AuthorizeNet.APIContracts.MerchantAuthenticationType();
     merchantAuthenticationType.setName(apiLoginId);
     merchantAuthenticationType.setTransactionKey(transactionKey);
@@ -66,6 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ctrl.execute(async () => {
         const apiResponse = ctrl.getResponse();
         const response = new AuthorizeNet.APIContracts.CreateTransactionResponse(apiResponse);
+        console.log('Authorize.net API response received');
 
         if (response != null) {
           if (response.getMessages().getResultCode() === AuthorizeNet.APIContracts.MessageTypeEnum.OK) {

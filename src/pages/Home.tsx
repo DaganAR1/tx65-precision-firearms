@@ -8,19 +8,30 @@ import {
   Award, 
   Star,
   Calendar,
-  User
+  User,
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { Product, BlogPost } from '../types';
 import { formatPrice, cn } from '../lib/utils';
+import { toast } from 'sonner';
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [latestPosts, setLatestPosts] = useState<BlogPost[]>([]);
   const [activeView, setActiveView] = useState<'form' | 'map'>('form');
   const [siteMedia, setSiteMedia] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [formValues, setFormValues] = useState({
+    name: '',
+    email: '',
+    inquiryType: '',
+    message: ''
+  });
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -102,6 +113,50 @@ export default function Home() {
   const brands = getBrands();
   // Triple the list to ensure it fills the screen and loops smoothly
   const displayBrands = [...brands, ...brands, ...brands];
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+    if (!accessKey) {
+      toast.error('Contact form is not configured. Please add VITE_WEB3FORMS_ACCESS_KEY to your environment.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name: formValues.name,
+          email: formValues.email,
+          subject: `TX65 Inquiry: ${formValues.inquiryType || 'General'}`,
+          message: formValues.message,
+          from_name: 'TX65 Precision Website'
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setIsSubmitted(true);
+        toast.success('Inquiry sent successfully!');
+        setFormValues({ name: '', email: '', inquiryType: '', message: '' });
+      } else {
+        throw new Error(result.message || 'Failed to send inquiry');
+      }
+    } catch (error: any) {
+      console.error('Web3Forms Error:', error);
+      toast.error(error.message || 'Something went wrong. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col">
@@ -403,51 +458,94 @@ export default function Home() {
             >
               {activeView === 'form' ? (
                 <div className="p-12 md:p-16 flex-grow">
-                  <form className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Full Name</label>
-                        <input 
-                          type="text" 
-                          required
-                          placeholder="John Doe" 
-                          className="input-field bg-gray-50/50 border-gray-100 focus:bg-white transition-all"
-                        />
+                  {isSubmitted ? (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="h-full flex flex-col items-center justify-center text-center space-y-6"
+                    >
+                      <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+                        <CheckCircle2 size={40} />
+                      </div>
+                      <h3 className="text-2xl font-black uppercase tracking-tight">Message Received</h3>
+                      <p className="text-gray-500 max-w-xs mx-auto">
+                        Thank you for reaching out. One of our precision experts will contact you shortly.
+                      </p>
+                      <button 
+                        onClick={() => setIsSubmitted(false)}
+                        className="text-xs font-black uppercase tracking-widest text-brand-accent hover:text-black transition-colors"
+                      >
+                        Send Another Message
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <form onSubmit={handleFormSubmit} className="space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Full Name</label>
+                          <input 
+                            type="text" 
+                            required
+                            value={formValues.name}
+                            onChange={(e) => setFormValues(prev => ({ ...prev, name: e.target.value }))}
+                            placeholder="John Doe" 
+                            className="input-field bg-gray-50/50 border-gray-100 focus:bg-white transition-all"
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Email Address</label>
+                          <input 
+                            type="email" 
+                            required
+                            value={formValues.email}
+                            onChange={(e) => setFormValues(prev => ({ ...prev, email: e.target.value }))}
+                            placeholder="john@example.com" 
+                            className="input-field bg-gray-50/50 border-gray-100 focus:bg-white transition-all"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Email Address</label>
-                        <input 
-                          type="email" 
-                          required
-                          placeholder="john@example.com" 
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Inquiry Type</label>
+                        <select 
+                          value={formValues.inquiryType}
+                          onChange={(e) => setFormValues(prev => ({ ...prev, inquiryType: e.target.value }))}
                           className="input-field bg-gray-50/50 border-gray-100 focus:bg-white transition-all"
-                        />
+                        >
+                          <option value="">Select an inquiry type (optional)</option>
+                          <option value="custom-build">Custom Build Request</option>
+                          <option value="technical-support">Technical Support</option>
+                          <option value="order-status">Order Status</option>
+                          <option value="ffl-transfer">FFL Transfer Inquiry</option>
+                          <option value="general">General Question</option>
+                        </select>
                       </div>
-                    </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Inquiry Type</label>
-                      <select className="input-field bg-gray-50/50 border-gray-100 focus:bg-white transition-all">
-                        <option value="">Select an inquiry type (optional)</option>
-                        <option value="custom-build">Custom Build Request</option>
-                        <option value="technical-support">Technical Support</option>
-                        <option value="order-status">Order Status</option>
-                        <option value="ffl-transfer">FFL Transfer Inquiry</option>
-                        <option value="general">General Question</option>
-                      </select>
-                    </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Your Message</label>
-                      <textarea 
-                        rows={6} 
-                        required
-                        placeholder="Tell us about your requirements..." 
-                        className="input-field bg-gray-50/50 border-gray-100 focus:bg-white transition-all resize-none"
-                      ></textarea>
-                    </div>
-                    <button type="submit" className="btn-primary w-full py-5 text-sm font-black uppercase tracking-[0.3em] shadow-xl hover:shadow-2xl transition-all">
-                      Send Inquiry
-                    </button>
-                  </form>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Your Message</label>
+                        <textarea 
+                          rows={6} 
+                          required
+                          value={formValues.message}
+                          onChange={(e) => setFormValues(prev => ({ ...prev, message: e.target.value }))}
+                          placeholder="Tell us about your requirements..." 
+                          className="input-field bg-gray-50/50 border-gray-100 focus:bg-white transition-all resize-none"
+                        ></textarea>
+                      </div>
+                      <button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="btn-primary w-full py-5 text-sm font-black uppercase tracking-[0.3em] shadow-xl hover:shadow-2xl transition-all flex items-center justify-center space-x-3"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="animate-spin" size={20} />
+                            <span>Sending...</span>
+                          </>
+                        ) : (
+                          <span>Send Inquiry</span>
+                        )}
+                      </button>
+                    </form>
+                  )}
                 </div>
               ) : (
                 <div className="flex-grow relative">

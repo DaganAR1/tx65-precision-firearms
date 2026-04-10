@@ -31,7 +31,6 @@ export interface Order {
   customer_email: string;
   customer_name: string;
   ffl_info?: any;
-  stripe_session_id?: string;
   transaction_id?: string;
   created_at: string;
   items?: OrderItem[];

@@ -1,9 +1,63 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Phone, MapPin, Mail, Clock, Shield } from 'lucide-react';
+import { Phone, MapPin, Mail, Clock, Shield, Loader2, CheckCircle2 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import { toast } from 'sonner';
 
 export default function Contact() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [formValues, setFormValues] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+    if (!accessKey) {
+      toast.error('Contact form is not configured. Please add VITE_WEB3FORMS_ACCESS_KEY to your environment.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name: formValues.name,
+          email: formValues.email,
+          subject: `TX65 Contact: ${formValues.subject || 'General Inquiry'}`,
+          message: formValues.message,
+          from_name: 'TX65 Precision Website'
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setIsSubmitted(true);
+        toast.success('Message sent successfully!');
+        setFormValues({ name: '', email: '', subject: '', message: '' });
+      } else {
+        throw new Error(result.message || 'Failed to send message');
+      }
+    } catch (error: any) {
+      console.error('Web3Forms Error:', error);
+      toast.error(error.message || 'Something went wrong. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col bg-white">
       <Helmet>
@@ -91,18 +145,107 @@ export default function Contact() {
               </div>
             </div>
 
-            {/* Map */}
-            <div className="h-full min-h-[500px] w-full bg-gray-100 shadow-2xl relative overflow-hidden">
-              <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13304.59477042071!2d-97.85974635!3d33.55845115!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x864d930f7b1f7b1f%3A0x7b1f7b1f7b1f7b1f!2sBowie%2C%20TX%2076230!5e0!3m2!1sen!2sus!4v1711311311311!5m2!1sen!2sus" 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen={true} 
-                loading="lazy" 
-                referrerPolicy="no-referrer-when-downgrade"
-                title="65GUNS Location Map"
-              ></iframe>
+            {/* Map & Form */}
+            <div className="space-y-12">
+              <div className="h-[400px] w-full bg-gray-100 shadow-2xl relative overflow-hidden">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13304.59477042071!2d-97.85974635!3d33.55845115!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x864d930f7b1f7b1f%3A0x7b1f7b1f7b1f7b1f!2sBowie%2C%20TX%2076230!5e0!3m2!1sen!2sus!4v1711311311311!5m2!1sen!2sus" 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={true} 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="65GUNS Location Map"
+                ></iframe>
+              </div>
+
+              <div className="bg-brand-muted p-8 md:p-12 border border-gray-100">
+                <h3 className="text-2xl font-black uppercase tracking-tight mb-8">Send a Message</h3>
+                {isSubmitted ? (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="py-12 flex flex-col items-center justify-center text-center space-y-6"
+                  >
+                    <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+                      <CheckCircle2 size={40} />
+                    </div>
+                    <h4 className="text-xl font-black uppercase tracking-tight">Message Sent</h4>
+                    <p className="text-gray-500 max-w-xs mx-auto">
+                      Thank you for contacting us. We'll get back to you as soon as possible.
+                    </p>
+                    <button 
+                      onClick={() => setIsSubmitted(false)}
+                      className="text-xs font-black uppercase tracking-widest text-brand-accent hover:text-black transition-colors"
+                    >
+                      Send Another Message
+                    </button>
+                  </motion.div>
+                ) : (
+                  <form onSubmit={handleFormSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Full Name</label>
+                        <input 
+                          type="text" 
+                          required
+                          value={formValues.name}
+                          onChange={(e) => setFormValues(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="John Doe" 
+                          className="input-field bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Email Address</label>
+                        <input 
+                          type="email" 
+                          required
+                          value={formValues.email}
+                          onChange={(e) => setFormValues(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="john@example.com" 
+                          className="input-field bg-white"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Subject</label>
+                      <input 
+                        type="text" 
+                        value={formValues.subject}
+                        onChange={(e) => setFormValues(prev => ({ ...prev, subject: e.target.value }))}
+                        placeholder="How can we help?" 
+                        className="input-field bg-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Message</label>
+                      <textarea 
+                        rows={5} 
+                        required
+                        value={formValues.message}
+                        onChange={(e) => setFormValues(prev => ({ ...prev, message: e.target.value }))}
+                        placeholder="Your message here..." 
+                        className="input-field bg-white resize-none"
+                      ></textarea>
+                    </div>
+                    <button 
+                      type="submit" 
+                      disabled={isSubmitting}
+                      className="btn-primary w-full py-4 text-sm font-black uppercase tracking-[0.3em] flex items-center justify-center space-x-3"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="animate-spin" size={20} />
+                          <span>Sending...</span>
+                        </>
+                      ) : (
+                        <span>Send Message</span>
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
         </div>

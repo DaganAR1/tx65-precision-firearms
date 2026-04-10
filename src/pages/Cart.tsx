@@ -106,6 +106,17 @@ export default function Cart() {
       apiLoginID: import.meta.env.VITE_AUTHORIZENET_API_LOGIN_ID,
     };
 
+    console.log('Initializing payment tokenization...');
+    if (!authData.clientKey || !authData.apiLoginID) {
+      console.error('Missing Authorize.net configuration:', { 
+        hasClientKey: !!authData.clientKey, 
+        hasApiLoginId: !!authData.apiLoginID 
+      });
+      setIsCheckingOut(false);
+      toast.error('Payment configuration is missing. Please check your admin settings.');
+      return;
+    }
+
     const cardData = {
       cardNumber: formData.cardNumber.replace(/\s/g, ''),
       month: formData.expiryMonth,
@@ -120,16 +131,29 @@ export default function Cart() {
 
     // @ts-ignore
     if (!window.Accept) {
+      console.error('Accept.js not loaded');
       setIsCheckingOut(false);
       toast.error('Payment system failed to load. Please refresh the page.');
       return;
     }
 
+    // Safety timeout: if Accept.js doesn't respond in 15 seconds, stop the spinner
+    const timeoutId = setTimeout(() => {
+      console.error('Accept.js tokenization timed out');
+      setIsCheckingOut(false);
+      toast.error('Payment processing timed out. Please check your connection and try again.');
+    }, 15000);
+
     // @ts-ignore
     window.Accept.dispatch(secureData, async (response: any) => {
+      clearTimeout(timeoutId);
+      console.log('Accept.js response received:', response.messages.resultCode);
+
       if (response.messages.resultCode === "Error") {
         setIsCheckingOut(false);
-        toast.error(response.messages.message[0].text || 'Failed to tokenize payment information');
+        const errorMsg = response.messages.message[0].text || 'Failed to tokenize payment information';
+        console.error('Accept.js Error:', errorMsg);
+        toast.error(errorMsg);
         return;
       }
 
