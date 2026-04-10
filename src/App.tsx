@@ -28,8 +28,6 @@ import CheckoutCancel from './pages/CheckoutCancel';
 import { CartProvider } from './context/CartContext';
 import { supabase } from './lib/supabase';
 
-import { OptimizedImage } from './components/OptimizedImage';
-
 function Footer() {
   const [logoUrl, setLogoUrl] = React.useState<string | null>(null);
 
@@ -51,11 +49,13 @@ function Footer() {
           <div className="col-span-1">
             <Link to="/" className="flex items-center mb-6 group min-h-[40px]">
               {logoUrl && (
-                <OptimizedImage 
+                <img 
                   src={logoUrl} 
                   alt="65GUNS" 
-                  containerClassName="h-10 w-auto"
-                  className="object-contain"
+                  className="h-10 w-auto object-contain transition-opacity duration-300" 
+                  referrerPolicy="no-referrer"
+                  onLoad={(e) => (e.currentTarget.style.opacity = '1')}
+                  style={{ opacity: 0 }}
                 />
               )}
             </Link>

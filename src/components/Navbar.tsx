@@ -4,7 +4,6 @@ import { ShoppingCart, User, Menu, X, Search, LogOut, ShieldCheck, ChevronDown }
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
-import { OptimizedImage } from './OptimizedImage';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -74,11 +73,13 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center group min-w-[150px]">
             {logoUrl && (
-              <OptimizedImage 
+              <img 
                 src={logoUrl} 
                 alt="65GUNS" 
-                containerClassName="h-12 w-auto"
-                className="object-contain"
+                className="h-12 w-auto object-contain transition-opacity duration-300" 
+                referrerPolicy="no-referrer"
+                onLoad={(e) => (e.currentTarget.style.opacity = '1')}
+                style={{ opacity: 0 }}
               />
             )}
           </Link>

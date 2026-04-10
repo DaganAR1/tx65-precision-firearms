@@ -29,7 +29,6 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import Papa from 'papaparse';
 import { parseProductFromText, extractProductUrls } from '../services/geminiService';
-import { OptimizedImage } from '../components/OptimizedImage';
 
 import ImageUpload from '../components/ImageUpload';
 
@@ -535,7 +534,7 @@ export default function AdminProducts() {
                 <tr key={product.id} className="hover:bg-brand-muted transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-4">
-                      <OptimizedImage src={product.image_url} alt="" containerClassName="w-12 h-12" />
+                      <img src={product.image_url} alt="" className="w-12 h-12 object-cover" referrerPolicy="no-referrer" />
                       <span className="font-bold uppercase tracking-tight text-sm">{product.name}</span>
                     </div>
                   </td>

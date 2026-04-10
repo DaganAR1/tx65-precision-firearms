@@ -121,33 +121,37 @@ export default function ProductDetails() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-4"
           >
-            <OptimizedImage 
-              src={activeImage || product.image_url} 
-              alt={product.name} 
-              containerClassName="aspect-[4/5]"
-            />
+            <div className="aspect-[4/5] bg-brand-muted overflow-hidden">
+              <OptimizedImage 
+                src={activeImage || product.image_url} 
+                alt={product.name} 
+                className="w-full h-full object-cover"
+                containerClassName="w-full h-full"
+                fallbackColor="bg-brand-muted"
+              />
+            </div>
             
             {product.images && product.images.length > 0 && (
               <div className="grid grid-cols-4 gap-4">
                 <button 
                   onClick={() => setActiveImage(product.image_url)}
                   className={cn(
-                    "aspect-square overflow-hidden border-2 transition-all",
+                    "aspect-square bg-brand-muted overflow-hidden border-2 transition-all",
                     activeImage === product.image_url ? "border-brand-accent" : "border-transparent hover:border-gray-200"
                   )}
                 >
-                  <OptimizedImage src={product.image_url} alt="" containerClassName="w-full h-full" />
+                  <OptimizedImage src={product.image_url} alt="" className="w-full h-full object-cover" containerClassName="w-full h-full" />
                 </button>
                 {product.images.map((img, idx) => (
                   <button 
                     key={idx}
                     onClick={() => setActiveImage(img)}
                     className={cn(
-                      "aspect-square overflow-hidden border-2 transition-all",
+                      "aspect-square bg-brand-muted overflow-hidden border-2 transition-all",
                       activeImage === img ? "border-brand-accent" : "border-transparent hover:border-gray-200"
                     )}
                   >
-                    <OptimizedImage src={img} alt="" containerClassName="w-full h-full" />
+                    <OptimizedImage src={img} alt="" className="w-full h-full object-cover" containerClassName="w-full h-full" />
                   </button>
                 ))}
               </div>

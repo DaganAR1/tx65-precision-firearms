@@ -70,7 +70,9 @@ export default function BlogPostPage() {
           <OptimizedImage 
             src={post.image_url} 
             alt={post.title} 
+            className="w-full h-full object-cover"
             containerClassName="w-full h-full"
+            fallbackColor="bg-brand-primary"
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-brand-primary via-brand-primary/50 to-transparent z-10"></div>

@@ -172,7 +172,9 @@ export default function Home() {
           <OptimizedImage 
             src={siteMedia['home_hero_image']} 
             alt="Hero Background" 
+            className="w-full h-full object-cover"
             containerClassName="w-full h-full"
+            fallbackColor="bg-black"
           />
         </div>
         <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
@@ -244,8 +246,9 @@ export default function Home() {
                 <OptimizedImage 
                   src={brand.image} 
                   alt={brand.name} 
-                  containerClassName="max-w-full max-h-full"
-                  className="object-contain opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+                  className="max-w-full max-h-full object-contain opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+                  containerClassName="flex items-center justify-center"
+                  fallbackColor="bg-transparent"
                 />
               </div>
             ))}
@@ -275,8 +278,8 @@ export default function Home() {
                 <OptimizedImage 
                   src={cat.image} 
                   alt={cat.name} 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   containerClassName="w-full h-full"
-                  className="transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                 <div className="absolute bottom-0 left-0 p-8 w-full">
@@ -310,12 +313,15 @@ export default function Home() {
                   to={`/product/${product.id}`}
                   className="group bg-white border border-gray-100 p-6 hover:shadow-xl transition-all duration-300"
                 >
-                  <OptimizedImage 
-                    src={product.image_url} 
-                    alt={product.name} 
-                    containerClassName="aspect-square mb-6"
-                    className="transition-transform duration-500 group-hover:scale-110"
-                  />
+                  <div className="aspect-square overflow-hidden mb-6 bg-gray-50">
+                    <OptimizedImage 
+                      src={product.image_url} 
+                      alt={product.name} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      containerClassName="w-full h-full"
+                      fallbackColor="bg-gray-50"
+                    />
+                  </div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-brand-accent">{product.category}</span>
                     <div className="flex items-center text-yellow-400">
@@ -351,12 +357,14 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               {latestPosts.map((post) => (
                 <Link key={post.id} to={`/blog/${post.slug}`} className="group">
-                  <OptimizedImage 
-                    src={post.image_url} 
-                    alt={post.title} 
-                    containerClassName="aspect-[16/9] mb-6"
-                    className="transition-transform duration-700 group-hover:scale-110"
-                  />
+                  <div className="aspect-[16/9] overflow-hidden mb-6 bg-gray-100">
+                    <OptimizedImage 
+                      src={post.image_url} 
+                      alt={post.title} 
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      containerClassName="w-full h-full"
+                    />
+                  </div>
                   <div className="flex items-center space-x-4 mb-4 text-[10px] font-black uppercase tracking-widest text-gray-400">
                     <span className="flex items-center"><Calendar size={12} className="mr-1" /> {new Date(post.created_at).toLocaleDateString()}</span>
                     <span className="flex items-center"><User size={12} className="mr-1" /> {post.author?.full_name || 'Admin'}</span>

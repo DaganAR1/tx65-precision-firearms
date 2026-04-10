@@ -23,7 +23,6 @@ import { supabase } from '../lib/supabase';
 import { Product, Order } from '../types';
 import { formatPrice, cn } from '../lib/utils';
 import { toast } from 'sonner';
-import { OptimizedImage } from '../components/OptimizedImage';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -283,7 +282,7 @@ export default function AdminDashboard() {
               {products.map((product) => (
                 <div key={product.id} className="flex items-center justify-between py-4 border-b border-gray-50 last:border-0">
                   <div className="flex items-center space-x-4">
-                    <OptimizedImage src={product.image_url} alt="" containerClassName="w-12 h-12" />
+                    <img src={product.image_url} alt="" className="w-12 h-12 object-cover" referrerPolicy="no-referrer" />
                     <div>
                       <p className="text-sm font-bold uppercase tracking-tight">{product.name}</p>
                       <p className="text-xs text-gray-400">{product.category}</p>

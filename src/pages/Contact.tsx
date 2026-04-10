@@ -73,7 +73,9 @@ export default function Contact() {
           <OptimizedImage 
             src="https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&q=80&w=1920" 
             alt="Contact Us Hero" 
+            className="w-full h-full object-cover"
             containerClassName="w-full h-full"
+            fallbackColor="bg-black"
           />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white text-center w-full">
