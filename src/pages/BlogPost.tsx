@@ -16,6 +16,7 @@ import { Helmet } from 'react-helmet-async';
 import Markdown from 'react-markdown';
 import { supabase } from '../lib/supabase';
 import { BlogPost } from '../types';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -66,11 +67,10 @@ export default function BlogPostPage() {
       {/* Hero Header */}
       <header className="relative h-[60vh] flex items-center overflow-hidden bg-brand-primary">
         <div className="absolute inset-0 opacity-40">
-          <img 
+          <OptimizedImage 
             src={post.image_url} 
             alt={post.title} 
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
+            containerClassName="w-full h-full"
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-brand-primary via-brand-primary/50 to-transparent z-10"></div>

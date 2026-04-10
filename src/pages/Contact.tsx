@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Phone, MapPin, Mail, Clock, Shield, Loader2, CheckCircle2 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,11 +70,10 @@ export default function Contact() {
       {/* Hero Section */}
       <section className="relative h-[40vh] flex items-center overflow-hidden bg-black">
         <div className="absolute inset-0 opacity-40">
-          <img 
+          <OptimizedImage 
             src="https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&q=80&w=1920" 
             alt="Contact Us Hero" 
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
+            containerClassName="w-full h-full"
           />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white text-center w-full">

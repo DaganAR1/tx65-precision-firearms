@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Shield, Users, Heart, MapPin } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 interface SiteContent {
   id: string;
@@ -47,11 +48,10 @@ export default function About() {
       {/* Hero Section */}
       <section className="relative h-[60vh] flex items-center overflow-hidden bg-black">
         <div className="absolute inset-0 opacity-50">
-          <img 
+          <OptimizedImage 
             src={content['about_hero_image']} 
             alt="About Us Hero" 
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
+            containerClassName="w-full h-full"
           />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white text-center w-full">
@@ -95,14 +95,11 @@ export default function About() {
                 </p>
               </div>
             </motion.div>
-            <div className="relative aspect-square lg:aspect-[4/5] bg-brand-muted overflow-hidden">
-              <img 
-                src={content['about_who_we_are_image']} 
-                alt="The Byler Family" 
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            </div>
+            <OptimizedImage 
+              src={content['about_who_we_are_image']} 
+              alt="The Byler Family" 
+              containerClassName="relative aspect-square lg:aspect-[4/5]"
+            />
           </div>
         </div>
       </section>
@@ -111,14 +108,11 @@ export default function About() {
       <section className="py-24 bg-brand-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="order-2 lg:order-1 relative aspect-square lg:aspect-[4/5] bg-white overflow-hidden shadow-xl">
-              <img 
-                src={content['about_mission_image']} 
-                alt="Our Mission" 
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            </div>
+            <OptimizedImage 
+              src={content['about_mission_image']} 
+              alt="Our Mission" 
+              containerClassName="order-2 lg:order-1 relative aspect-square lg:aspect-[4/5] shadow-xl"
+            />
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}

@@ -3,6 +3,7 @@ import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { uploadImage } from '../lib/storage';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
+import { OptimizedImage } from './OptimizedImage';
 
 interface ImageUploadProps {
   value: string;
@@ -53,11 +54,10 @@ export default function ImageUpload({ value, onChange, className, label }: Image
       <div className="relative group">
         {value ? (
           <div className="relative aspect-video bg-gray-100 border border-gray-200 overflow-hidden group">
-            <img 
+            <OptimizedImage 
               src={value} 
               alt="Uploaded" 
-              className="w-full h-full object-cover" 
-              referrerPolicy="no-referrer"
+              containerClassName="w-full h-full"
             />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
               <button

@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { Product, Category } from '../types';
 import { formatPrice, cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 const FILTER_CATEGORIES = {
   'Rifles': ['Manufacturer', 'Caliber', 'Action', 'Barrel Length'],
@@ -329,15 +330,15 @@ export default function Shop() {
                       className="group"
                     >
                       <Link to={`/product/${product.id}`} className="block">
-                        <div className="relative aspect-[4/5] overflow-hidden bg-gray-100 mb-4">
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            referrerPolicy="no-referrer"
+                        <div className="relative overflow-hidden mb-4">
+                          <OptimizedImage 
+                            src={product.image_url} 
+                            alt={product.name} 
+                            containerClassName="aspect-[4/5]"
+                            className="transition-transform duration-500 group-hover:scale-105"
                           />
                           {product.stock_quantity === 0 && (
-                            <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+                            <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
                               <span className="text-xs font-black uppercase tracking-[0.3em] bg-brand-primary text-white px-4 py-2">Out of Stock</span>
                             </div>
                           )}

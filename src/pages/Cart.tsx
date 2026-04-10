@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { formatPrice, cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 const TAX_RATES: Record<string, number> = {
   'AL': 0.04, 'AK': 0.00, 'AZ': 0.056, 'AR': 0.065, 'CA': 0.0725, 'CO': 0.029, 'CT': 0.0635, 'DE': 0.00, 'FL': 0.06, 'GA': 0.04,
@@ -285,9 +286,7 @@ export default function Cart() {
                   <div className="space-y-6">
                     {cartItems.map((item) => (
                       <div key={(item as any).cartItemId || item.id} className="flex items-center space-x-6 py-6 border-b border-gray-100">
-                        <div className="w-24 h-24 bg-brand-muted overflow-hidden flex-shrink-0">
-                          <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        </div>
+                        <OptimizedImage src={item.image_url} alt={item.name} containerClassName="w-24 h-24 flex-shrink-0" />
                         <div className="flex-1">
                           <span className="text-[10px] font-black uppercase tracking-widest text-brand-accent">{item.category}</span>
                           <h3 className="text-lg font-bold uppercase tracking-tight mb-1">{item.name}</h3>

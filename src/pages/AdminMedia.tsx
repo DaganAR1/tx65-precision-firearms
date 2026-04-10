@@ -15,6 +15,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import ImageUpload from '../components/ImageUpload';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 interface SiteContent {
   id: string;
@@ -168,7 +169,7 @@ export default function AdminMedia() {
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Current Branding Preview</p>
                 <div className="flex items-center space-x-4">
                   {content['site_logo'] ? (
-                    <img src={content['site_logo']} alt="Logo Preview" className="h-12 w-auto object-contain" />
+                    <OptimizedImage src={content['site_logo']} alt="Logo Preview" containerClassName="h-12 w-auto" className="object-contain" />
                   ) : (
                     <span className="text-2xl font-black tracking-tighter text-brand-primary">
                       65<span className="text-brand-accent">GUNS</span>

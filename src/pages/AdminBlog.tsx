@@ -16,6 +16,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { BlogPost } from '../types';
 import { toast } from 'sonner';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 export default function AdminBlog() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -139,9 +140,7 @@ export default function AdminBlog() {
                     <tr key={post.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-6">
                         <div className="flex items-center space-x-4">
-                          <div className="w-16 h-10 bg-gray-100 overflow-hidden flex-shrink-0">
-                            <img src={post.image_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                          </div>
+                          <OptimizedImage src={post.image_url} alt="" containerClassName="w-16 h-10 flex-shrink-0" />
                           <div>
                             <div className="font-black uppercase tracking-tight text-sm line-clamp-1">{post.title}</div>
                             <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center mt-1">

@@ -36,3 +36,16 @@
 .input-field {
   @apply w-full px-4 py-2 border border-gray-300 focus:outline-none focus:border-brand-accent transition-colors;
 }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.skeleton {
+  @apply bg-gray-200 animate-pulse;
+}

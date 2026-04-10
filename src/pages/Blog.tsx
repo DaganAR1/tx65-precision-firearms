@@ -14,6 +14,7 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { BlogPost } from '../types';
 import { cn } from '../lib/utils';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 export default function Blog() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -59,11 +60,10 @@ export default function Blog() {
       {/* Hero Section */}
       <section className="bg-brand-primary py-24 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
-          <img 
+          <OptimizedImage 
             src="https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&q=80&w=1920" 
             alt="" 
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
+            containerClassName="w-full h-full"
           />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
@@ -99,18 +99,16 @@ export default function Blog() {
                     className="group"
                   >
                     <Link to={`/blog/${post.slug}`} className="block">
-                      <div className="aspect-[16/9] overflow-hidden mb-6 bg-gray-100 relative">
-                        <img 
-                          src={post.image_url} 
-                          alt={post.title} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          referrerPolicy="no-referrer"
-                        />
-                        <div className="absolute top-4 left-4">
-                          <span className="bg-brand-accent text-black text-[10px] font-black uppercase tracking-widest px-3 py-1">
-                            {post.category}
-                          </span>
-                        </div>
+                      <OptimizedImage 
+                        src={post.image_url} 
+                        alt={post.title} 
+                        containerClassName="aspect-[16/9] mb-6"
+                        className="transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute top-4 left-4 z-10">
+                        <span className="bg-brand-accent text-black text-[10px] font-black uppercase tracking-widest px-3 py-1">
+                          {post.category}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-4 mb-4 text-[10px] font-black uppercase tracking-widest text-gray-400">
                         <span className="flex items-center"><Calendar size={12} className="mr-1" /> {new Date(post.created_at).toLocaleDateString()}</span>
