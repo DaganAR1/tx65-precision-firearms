@@ -197,9 +197,9 @@ export default function About() {
                 <MapPin size={18} />
                 <span>Visit Us in Bowie, Texas</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">Come See Us.</h2>
+              <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">Call for an Appointment.</h2>
               <p className="text-lg text-gray-600">
-                We're located in the heart of Bowie, Texas. Whether you're local or just passing through, we'd love to meet you and help you find exactly what you're looking for.
+                We're located in the heart of Bowie, Texas. To ensure we can give you our full attention, please call ahead to schedule an appointment.
               </p>
               <div className="p-8 bg-brand-muted border border-gray-100 space-y-4">
                 <p className="font-bold uppercase tracking-widest text-xs text-gray-400">Our Location</p>

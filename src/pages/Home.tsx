@@ -247,7 +247,7 @@ export default function Home() {
                   src={brand.image} 
                   alt={brand.name} 
                   className="max-w-full max-h-full object-contain opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
-                  containerClassName="flex items-center justify-center"
+                  containerClassName="w-full h-full flex items-center justify-center"
                   fallbackColor="bg-transparent"
                 />
               </div>

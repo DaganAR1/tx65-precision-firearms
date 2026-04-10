@@ -151,9 +151,20 @@ export default function Cart() {
 
       if (response.messages.resultCode === "Error") {
         setIsCheckingOut(false);
-        const errorMsg = response.messages.message[0].text || 'Failed to tokenize payment information';
-        console.error('Accept.js Error:', errorMsg);
-        toast.error(errorMsg);
+        const error = response.messages.message[0];
+        const errorMsg = error.text || 'Failed to tokenize payment information';
+        const errorCode = error.code;
+        
+        console.error('Accept.js Error:', errorMsg, errorCode);
+        
+        // Provide more user-friendly explanations for common error codes
+        let friendlyMsg = errorMsg;
+        if (errorCode === 'E_WC_05') friendlyMsg = 'Invalid card number. Please check and try again.';
+        if (errorCode === 'E_WC_06') friendlyMsg = 'Invalid expiration date. Please check the month and year.';
+        if (errorCode === 'E_WC_07') friendlyMsg = 'Invalid CVC code. Please check the 3 or 4 digit code on your card.';
+        if (errorCode === 'E_WC_15') friendlyMsg = 'Transaction declined by your bank. Please contact them or use a different card.';
+        
+        toast.error(friendlyMsg);
         return;
       }
 
